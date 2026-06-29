@@ -1,0 +1,42 @@
+{
+  "pages": [
+    {
+      "path": "pages/tabbar/tabbar",
+      "style": {
+        "navigationBarTitleText": "账·迹",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/record/record",
+      "style": {
+        "navigationBarTitleText": "记账",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/bills/bills",
+      "style": {
+        "navigationBarTitleText": "账单"
+      }
+    },
+    {
+      "path": "pages/stats/stats",
+      "style": {
+        "navigationBarTitleText": "统计"
+      }
+    },
+    {
+      "path": "pages/settings/ai-settings",
+      "style": {
+        "navigationBarTitleText": "AI 服务配置"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "账·迹",
+    "navigationBarBackgroundColor": "#0E0E10",
+    "backgroundColor": "#0E0E10"
+  }
+}
