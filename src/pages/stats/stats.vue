@@ -4,7 +4,7 @@
     <view class="top-bar">
       <!-- AI 账单分析按钮 -->
       <view class="deep-analysis-btn" @click="openAnalysisModal">
-        <text class="btn-text">AI 账单分析</text>
+        <text class="btn-text">{{ t('stats.aiAnalysis') }}</text>
         <text class="btn-arrow">→</text>
       </view>
       <!-- 设置入口 -->
@@ -16,7 +16,7 @@
     <!-- 消费分布环形图 -->
     <view class="chart-section">
       <view class="section-header">
-        <text class="section-title">消费分布</text>
+        <text class="section-title">{{ t('stats.expenseDistribution') }}</text>
         <text class="section-subtitle">{{ currentMonthLabel }}</text>
       </view>
       <view class="chart-container">
@@ -31,7 +31,7 @@
           </view>
         </view>
         <view class="empty-chart" v-else>
-          <text class="empty-text">暂无支出数据</text>
+          <text class="empty-text">{{ t('stats.noExpenseData') }}</text>
         </view>
       </view>
       <!-- 图例 -->
@@ -52,7 +52,7 @@
     <!-- 30 日支出趋势 -->
     <view class="chart-section">
       <view class="section-header">
-        <text class="section-title">消费节奏</text>
+        <text class="section-title">{{ t('stats.spendingTrend') }}</text>
       </view>
       <view class="trend-chart">
         <view class="trend-bars">
@@ -73,7 +73,7 @@
       <view class="modal-overlay" @click="closeAnalysisModal"></view>
       <view class="modal-content">
         <view class="modal-header">
-          <text class="modal-title">AI 账单分析</text>
+          <text class="modal-title">{{ t('stats.aiAnalysis') }}</text>
           <text class="modal-close" @click="closeAnalysisModal">✕</text>
         </view>
         
@@ -107,7 +107,7 @@
         </view>
 
         <view class="ai-disclaimer" v-if="aiReport.length > 0">
-          <text>⚡ 由通义千问 AI 生成，仅供参考</text>
+          <text>{{ t('stats.aiDisclaimer') }}</text>
         </view>
       </view>
     </view>
@@ -119,6 +119,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useBillsStore } from '@/store/bills'
 import { formatAmount, getYearMonth } from '@/utils/format'
 import { getDeepAnalysisStream, parseAiReport } from '@/utils/ai-ledger'
+import { t } from '@/i18n'
 
 const billsStore = useBillsStore()
 
@@ -201,11 +202,11 @@ async function handleDeepAnalysis() {
   aiReport.value = []
   currentText.value = ''
   analysisSteps.value = [
-    { text: '读取本月账单数据', completed: false, current: true },
-    { text: '分析消费异常点', completed: false, current: false },
-    { text: '识别消费习惯模式', completed: false, current: false },
-    { text: '生成个性化建议', completed: false, current: false },
-    { text: '撰写财务总结', completed: false, current: false }
+    { text: t('stats.analysisSteps.readData'), completed: false, current: true },
+    { text: t('stats.analysisSteps.analyzeAnomalies'), completed: false, current: false },
+    { text: t('stats.analysisSteps.identifyPatterns'), completed: false, current: false },
+    { text: t('stats.analysisSteps.generateAdvice'), completed: false, current: false },
+    { text: t('stats.analysisSteps.writeSummary'), completed: false, current: false }
   ]
 
   try {

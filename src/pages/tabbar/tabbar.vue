@@ -4,19 +4,19 @@
     <view class="top-nav">
       <view class="nav-item" :class="{ active: currentTab === 0 }" @click="currentTab = 0">
         <text class="nav-icon">📝</text>
-        <text class="nav-text">记账</text>
+        <text class="nav-text">{{ t('tabbar.record') }}</text>
       </view>
       <view class="nav-item" :class="{ active: currentTab === 1 }" @click="currentTab = 1">
         <text class="nav-icon">📋</text>
-        <text class="nav-text">账单</text>
+        <text class="nav-text">{{ t('tabbar.bills') }}</text>
       </view>
       <view class="nav-item" :class="{ active: currentTab === 2 }" @click="currentTab = 2">
         <text class="nav-icon">📊</text>
-        <text class="nav-text">统计</text>
+        <text class="nav-text">{{ t('tabbar.stats') }}</text>
       </view>
-      <view class="nav-item" @click="toggleLanguage">
-        <text class="nav-icon">{{ currentLang === 'zh' ? '🇨🇳' : '🇺🇸' }}</text>
-        <text class="nav-text">{{ currentLang === 'zh' ? '中文' : 'EN' }}</text>
+      <view class="nav-item" @click="goToSettings">
+        <text class="nav-icon">⚙️</text>
+        <text class="nav-text">{{ t('tabbar.settings') }}</text>
       </view>
     </view>
 
@@ -30,23 +30,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import Record from '@/pages/record/record.vue'
 import Bills from '@/pages/bills/bills.vue'
 import Stats from '@/pages/stats/stats.vue'
-import { setLanguage, useLanguage } from '@/i18n'
+import { t } from '@/i18n'
 
 const currentTab = ref(0)
-const langState = useLanguage()
 
-// 使用响应式语言状态
-const currentLang = computed(() => langState.lang)
-
-function toggleLanguage() {
-  const newLang = currentLang.value === 'zh' ? 'en' : 'zh'
-  setLanguage(newLang)
-  // 触发自定义事件通知其他组件
-  uni.$emit('languageChanged', newLang)
+function goToSettings() {
+  uni.navigateTo({
+    url: '/pages/settings/ai-settings'
+  })
 }
 </script>
 

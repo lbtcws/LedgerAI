@@ -6,6 +6,19 @@
 2. **src/manifest.json** - 已配置 H5 hash 路由模式（GitHub Pages 不支持 history 模式）
 3. **dist/build/h5/.nojekyll** - 已创建，防止 GitHub Pages 忽略下划线开头的文件
 4. **.github/workflows/deploy.yml** - GitHub Actions 一键部署工作流
+5. **i18n 国际化** - 全页面支持中英文切换
+6. **主题系统** - 支持深色/浅色/跟随系统三种主题
+
+## 新功能
+
+### 国际化（i18n）
+- 点击设置页面可切换语言（简体中文 / English）
+- 所有页面内容已支持多语言翻译
+
+### 主题切换
+- 深色主题（默认）
+- 浅色主题
+- 跟随系统
 
 ## 一键发布（推荐）
 
@@ -15,11 +28,12 @@
 - 删除了 `pnpm-workspace.yaml`（导致 packages field missing 错误）
 - 更新 pnpm 版本为 8（兼容 Node.js v20）
 - 重新生成 pnpm-lock.yaml（lockfileVersion 6.0）
+- 完善 i18n 翻译系统和主题切换功能
 
 ```bash
 cd /root/code/LedgerAI
 git add .
-git commit -m "Fix: pnpm v8 compatibility for GitHub Actions"
+git commit -m "Fix: pnpm v8 compatibility + i18n + theme system"
 git push origin main
 ```
 
@@ -87,3 +101,17 @@ git push origin main
 1. **Hash 路由**：URL 会包含 `#` 符号，如 `https://xxx.github.io/LedgerAI/#/pages/record/record`
 2. **base 路径**：如果更改仓库名，需要同步修改 `vite.config.ts` 中的 `base` 配置
 3. **首次部署**：需要先在 GitHub Settings → Pages 启用 GitHub Actions 作为部署源
+4. **.nojekyll 文件**：每次构建后会自动创建，确保 GitHub Pages 正确处理资源文件
+
+## 自动化部署脚本
+
+项目已配置 GitHub Actions 工作流，每次推送到 main 分支后自动部署：
+
+```yaml
+# .github/workflows/deploy.yml
+- 使用 Node.js v20 + pnpm v8
+- 自动执行 pnpm install && pnpm run build:h5
+- 自动部署 dist/build/h5 到 GitHub Pages
+```
+
+如需手动触发，可前往 GitHub Actions 页面运行 "Deploy to GitHub Pages" 工作流。

@@ -14,7 +14,7 @@
           :class="{ active: language === 'zh' }"
           @click="setLang('zh')"
         >
-          <text>简体中文</text>
+          <text>{{ t('settings.chinese') }}</text>
           <view class="check-mark" v-if="language === 'zh'">✓</view>
         </view>
         <view
@@ -22,8 +22,42 @@
           :class="{ active: language === 'en' }"
           @click="setLang('en')"
         >
-          <text>English</text>
+          <text>{{ t('settings.english') }}</text>
           <view class="check-mark" v-if="language === 'en'">✓</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 主题选择 -->
+    <view class="section">
+      <text class="section-title">{{ t('settings.theme') }}</text>
+      <view class="theme-list">
+        <view
+          class="theme-item"
+          :class="{ active: theme === 'dark' }"
+          @click="setTheme('dark')"
+        >
+          <text class="theme-icon">🌙</text>
+          <text class="theme-name">{{ t('settings.themeDark') }}</text>
+          <view class="check-mark" v-if="theme === 'dark'">✓</view>
+        </view>
+        <view
+          class="theme-item"
+          :class="{ active: theme === 'light' }"
+          @click="setTheme('light')"
+        >
+          <text class="theme-icon">☀️</text>
+          <text class="theme-name">{{ t('settings.themeLight') }}</text>
+          <view class="check-mark" v-if="theme === 'light'">✓</view>
+        </view>
+        <view
+          class="theme-item"
+          :class="{ active: theme === 'auto' }"
+          @click="setTheme('auto')"
+        >
+          <text class="theme-icon">⚙️</text>
+          <text class="theme-name">{{ t('settings.themeAuto') }}</text>
+          <view class="check-mark" v-if="theme === 'auto'">✓</view>
         </view>
       </view>
     </view>
@@ -157,6 +191,9 @@ const testSuccess = ref(false)
 // 使用响应式语言状态
 const language = computed(() => langState.lang)
 
+// 使用响应式主题状态
+const theme = computed(() => configStore.theme)
+
 const currentProvider = computed(() => {
   return getProviderInfo(config.value.provider)
 })
@@ -189,7 +226,16 @@ function setLang(lang) {
   setLanguage(lang)
   configStore.setLanguage(lang)
   uni.showToast({
-    title: lang === 'zh' ? '语言已切换' : 'Language switched',
+    title: lang === 'zh' ? t('settings.languageSwitched') : t('settings.languageSwitchedEn'),
+    icon: 'success',
+    duration: 1500
+  })
+}
+
+function setTheme(newTheme) {
+  configStore.setTheme(newTheme)
+  uni.showToast({
+    title: t('settings.configSaved'),
     icon: 'success',
     duration: 1500
   })
@@ -343,6 +389,42 @@ onMounted(() => {
   font-size: 32rpx;
   color: #A8C5A0;
   font-weight: 600;
+}
+
+/* Theme styles */
+.theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.theme-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background-color: #161618;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  border-radius: 12rpx;
+  padding: 28rpx 32rpx;
+  transition: border-color 0.2s;
+}
+
+.theme-item:active {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.theme-item.active {
+  border-color: #A8C5A0;
+}
+
+.theme-icon {
+  font-size: 32rpx;
+}
+
+.theme-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #F0EDE6;
 }
 
 .setting-item {
