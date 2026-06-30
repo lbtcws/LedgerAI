@@ -25,9 +25,13 @@ page[data-theme="dark"] {
   --text-primary: #F0EDE6;
   --text-secondary: #8A8A8A;
   --text-muted: #3D3D3F;
+  --text-inverse: #0E0E10;
   --accent: #A8C5A0;
   --accent-hover: #9AB892;
+  --accent-soft: rgba(168, 197, 160, 0.1);
+  --accent-border: rgba(168, 197, 160, 0.2);
   --danger: #E07070;
+  --error: #E07070;
   --success: #A8C5A0;
   --warning: #D4B87E;
   --divider: rgba(255, 255, 255, 0.08);
@@ -44,9 +48,13 @@ page[data-theme="light"] {
   --text-primary: #1C1917;
   --text-secondary: #78716C;
   --text-muted: #D6D3D1;
+  --text-inverse: #FFFFFF;
   --accent: #4A7C3F;
   --accent-hover: #3D6633;
+  --accent-soft: rgba(74, 124, 63, 0.1);
+  --accent-border: rgba(74, 124, 63, 0.2);
   --danger: #C74B4B;
+  --error: #C74B4B;
   --success: #4A7C3F;
   --warning: #B8984A;
   --divider: rgba(0, 0, 0, 0.08);

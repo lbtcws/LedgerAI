@@ -50,7 +50,8 @@ function goToSettings() {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #0E0E10;
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 .top-nav {
@@ -59,9 +60,10 @@ function goToSettings() {
   align-items: center;
   gap: 32rpx;
   height: 88rpx;
-  background-color: #0E0E10;
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.08);
+  background-color: var(--bg-primary);
+  border-bottom: 1rpx solid var(--divider);
   padding-top: var(--status-bar-height, 0);
+  transition: background-color 0.3s ease;
 }
 
 .nav-item {
@@ -84,13 +86,14 @@ function goToSettings() {
 
 .nav-text {
   font-size: 28rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color 0.2s;
 }
 
 .nav-item.active .nav-text {
-  color: #A8C5A0;
-  background-color: rgba(168, 197, 160, 0.1);
+  color: var(--accent);
+  background-color: var(--accent-soft);
 }
 
 .nav-item.active .nav-icon {
