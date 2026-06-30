@@ -11,14 +11,15 @@
 
 ### 步骤 0：提交修复（重要！）
 
-已修复两个问题：
+已修复问题：
 - 删除了 `pnpm-workspace.yaml`（导致 packages field missing 错误）
-- 更新 pnpm 版本为 11（匹配本地环境）
+- 更新 pnpm 版本为 8（兼容 Node.js v20）
+- 重新生成 pnpm-lock.yaml（lockfileVersion 6.0）
 
 ```bash
 cd /root/code/LedgerAI
 git add .
-git commit -m "Fix: remove pnpm-workspace.yaml, update pnpm version to 11"
+git commit -m "Fix: pnpm v8 compatibility for GitHub Actions"
 git push origin main
 ```
 
