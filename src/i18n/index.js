@@ -1,4 +1,5 @@
 // src/i18n/index.js - 多语言支持
+import { reactive, readonly } from 'vue'
 
 const messages = {
   zh: {
@@ -161,13 +162,15 @@ const messages = {
   },
 }
 
-// 当前语言
-let currentLang = 'zh'
+// 响应式语言状态
+const state = reactive({
+  lang: 'zh'
+})
 
 // 设置语言
 export function setLanguage(lang) {
   if (messages[lang]) {
-    currentLang = lang
+    state.lang = lang
     uni.setStorageSync('ledger-language', lang)
   }
 }
@@ -187,10 +190,15 @@ export function getLanguage() {
   }
 }
 
+// 获取响应式语言状态（用于组件中订阅变化）
+export function useLanguage() {
+  return readonly(state)
+}
+
 // 获取翻译
 export function t(key, params = {}) {
   const keys = key.split('.')
-  let value = messages[currentLang]
+  let value = messages[state.lang]
   
   for (const k of keys) {
     if (value && typeof value === 'object') {
@@ -220,6 +228,7 @@ export default {
   messages,
   setLanguage,
   getLanguage,
+  useLanguage,
   t,
   initI18n,
 }

@@ -3,13 +3,20 @@
     <!-- 顶部导航 -->
     <view class="top-nav">
       <view class="nav-item" :class="{ active: currentTab === 0 }" @click="currentTab = 0">
+        <text class="nav-icon">📝</text>
         <text class="nav-text">记账</text>
       </view>
       <view class="nav-item" :class="{ active: currentTab === 1 }" @click="currentTab = 1">
+        <text class="nav-icon">📋</text>
         <text class="nav-text">账单</text>
       </view>
       <view class="nav-item" :class="{ active: currentTab === 2 }" @click="currentTab = 2">
+        <text class="nav-icon">📊</text>
         <text class="nav-text">统计</text>
+      </view>
+      <view class="nav-item" @click="toggleLanguage">
+        <text class="nav-icon">{{ currentLang === 'zh' ? '🇨🇳' : '🇺🇸' }}</text>
+        <text class="nav-text">{{ currentLang === 'zh' ? '中文' : 'EN' }}</text>
       </view>
     </view>
 
@@ -23,12 +30,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Record from '@/pages/record/record.vue'
 import Bills from '@/pages/bills/bills.vue'
 import Stats from '@/pages/stats/stats.vue'
+import { setLanguage, useLanguage } from '@/i18n'
 
 const currentTab = ref(0)
+const langState = useLanguage()
+
+// 使用响应式语言状态
+const currentLang = computed(() => langState.lang)
+
+function toggleLanguage() {
+  const newLang = currentLang.value === 'zh' ? 'en' : 'zh'
+  setLanguage(newLang)
+  // 触发自定义事件通知其他组件
+  uni.$emit('languageChanged', newLang)
+}
 </script>
 
 <style scoped>
@@ -43,7 +62,7 @@ const currentTab = ref(0)
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 48rpx;
+  gap: 32rpx;
   height: 88rpx;
   background-color: #0E0E10;
   border-bottom: 1rpx solid rgba(255, 255, 255, 0.08);
@@ -51,13 +70,21 @@ const currentTab = ref(0)
 }
 
 .nav-item {
-  padding: 12rpx 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
   border-radius: 20rpx;
   transition: all 0.2s;
 }
 
 .nav-item:active {
   opacity: 0.7;
+}
+
+.nav-icon {
+  font-size: 32rpx;
+  line-height: 1;
 }
 
 .nav-text {
@@ -69,6 +96,10 @@ const currentTab = ref(0)
 .nav-item.active .nav-text {
   color: #A8C5A0;
   background-color: rgba(168, 197, 160, 0.1);
+}
+
+.nav-item.active .nav-icon {
+  filter: brightness(1.2);
 }
 
 .page-content {

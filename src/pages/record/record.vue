@@ -60,9 +60,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useBillsStore } from '@/store/bills'
 import { quickCategorize } from '@/utils/categories'
-import { t } from '@/i18n'
+import { t, useLanguage } from '@/i18n'
 
 const billsStore = useBillsStore()
+const langState = useLanguage()
 
 // 状态
 const amountStr = ref('')

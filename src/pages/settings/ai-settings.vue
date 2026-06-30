@@ -143,16 +143,19 @@ import {
   AI_PROVIDERS 
 } from '@/utils/ai-config'
 import { callAi } from '@/utils/ai-ledger'
-import { t, setLanguage } from '@/i18n'
+import { t, setLanguage, useLanguage } from '@/i18n'
 import { useConfigStore } from '@/store/config'
 
 const configStore = useConfigStore()
+const langState = useLanguage()
 const config = ref({ ...getAiConfig() })
 const providers = ref(AI_PROVIDERS)
 const testing = ref(false)
 const testMessage = ref('')
 const testSuccess = ref(false)
-const language = ref(configStore.language)
+
+// 使用响应式语言状态
+const language = computed(() => langState.lang)
 
 const currentProvider = computed(() => {
   return getProviderInfo(config.value.provider)

@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [
     uni()
   ],
+  base: '/LedgerAI/',
   server: {
     host: '0.0.0.0',
     port: 5173

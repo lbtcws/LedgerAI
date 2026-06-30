@@ -155,10 +155,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useBillsStore } from '@/store/bills'
 import { formatAmount, formatDate, getYearMonth, navigateMonth, getRecentMonths } from '@/utils/format'
 import { getExpenseCategories, getIncomeCategories, tCategory } from '@/utils/categories'
-import { t } from '@/i18n'
+import { t, useLanguage } from '@/i18n'
 import BillItem from '@/components/BillItem.vue'
 
 const billsStore = useBillsStore()
+const langState = useLanguage()
 
 // 统一分类体系（支出 + 收入）
 const ALL_CATEGORIES = [...getExpenseCategories(), ...getIncomeCategories().filter(c => !getExpenseCategories().includes(c))]

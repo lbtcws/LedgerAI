@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { AiConfig, ApiTestResult } from '../types/config'
 import { DEFAULT_APP_CONFIG } from '../types/config'
-import { getLanguage, setLanguage } from '../i18n'
+import { getLanguage, setLanguage as i18nSetLanguage } from '../i18n'
 
 export const useConfigStore = defineStore('config', () => {
   // ========== State ==========
@@ -68,7 +68,7 @@ export const useConfigStore = defineStore('config', () => {
   
   const setLanguage = (lang: string) => {
     language.value = lang
-    setLanguage(lang)
+    i18nSetLanguage(lang)
   }
   
   return {
