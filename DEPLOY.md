@@ -9,6 +9,19 @@
 
 ## 一键发布（推荐）
 
+### 步骤 0：提交修复（重要！）
+
+已修复两个问题：
+- 删除了 `pnpm-workspace.yaml`（导致 packages field missing 错误）
+- 更新 pnpm 版本为 11（匹配本地环境）
+
+```bash
+cd /root/code/LedgerAI
+git add .
+git commit -m "Fix: remove pnpm-workspace.yaml, update pnpm version to 11"
+git push origin main
+```
+
 ### 步骤 1：首次设置 GitHub Pages
 
 1. 打开 GitHub 仓库 → **Settings** → **Pages**
