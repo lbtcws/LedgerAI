@@ -4,6 +4,8 @@
 
 LedgerAI 是一款极简风格个人记账应用，采用 **local-first（本地优先）** 架构，所有数据存储在用户设备本地，支持 AI 智能记账和财务分析功能。
 
+**🌐 在线体验**: [https://yourusername.github.io/LedgerAI/](https://yourusername.github.io/LedgerAI/)
+
 ---
 
 ## 📸 应用预览
@@ -79,6 +81,30 @@ pnpm build:h5
 # 微信小程序构建
 pnpm build:mp-weixin
 ```
+
+### 🌐 GitHub Pages 部署
+
+项目已配置 GitHub Actions 自动部署工作流：
+
+1. **推送代码到 main 分支**
+   ```bash
+   git add .
+   git commit -m "Your changes"
+   git push origin main
+   ```
+
+2. **GitHub Actions 自动构建部署**
+   - 每次推送到 main 分支会自动触发构建
+   - 也可手动在 GitHub Actions 页面触发 "Deploy to GitHub Pages"
+
+3. **访问部署后的网站**
+   ```
+   https://YOUR_USERNAME.github.io/LedgerAI/
+   ```
+
+> 📝 **首次使用**: 需要在 GitHub 仓库 Settings → Pages 中，将 Source 设置为 "GitHub Actions"
+
+详见 [DEPLOY.md](DEPLOY.md) 完整部署指南。
 
 ---
 

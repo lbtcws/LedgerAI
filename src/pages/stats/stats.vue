@@ -1,15 +1,17 @@
 <template>
-  <view class="stats-page" :class="{ 'modal-open': showDeepAnalysisModal }">
-    <!-- 顶部操作栏 -->
+  <view class="stats-page">
+    <!-- 顶部操作栏：月份切换 + AI 账单分析 -->
     <view class="top-bar">
+      <!-- 月份切换器 -->
+      <view class="month-selector">
+        <text class="nav-btn" @click="prevMonth">‹</text>
+        <text class="month-label">{{ currentMonthLabel }}</text>
+        <text class="nav-btn" @click="nextMonth">›</text>
+      </view>
       <!-- AI 账单分析按钮 -->
       <view class="deep-analysis-btn" @click="openAnalysisModal">
         <text class="btn-text">{{ t('stats.aiAnalysis') }}</text>
         <text class="btn-arrow">→</text>
-      </view>
-      <!-- 设置入口 -->
-      <view class="settings-entry" @click="goToSettings">
-        <text class="settings-icon">⚙️</text>
       </view>
     </view>
 
@@ -38,32 +40,98 @@
       <view class="legend-list">
         <view
           class="legend-item"
-          v-for="(item, index) in categoryBreakdown"
+          v-for="(item, index) in categoryBreakdownWithI18n"
           :key="item.category"
         >
           <view class="legend-dot" :style="{ backgroundColor: getSegmentColor(index) }"></view>
-          <text class="legend-label">{{ item.category }}</text>
+          <text class="legend-label">{{ item.categoryName }}</text>
           <text class="legend-amount">¥{{ formatAmount(item.amount) }}</text>
           <text class="legend-percent">{{ item.percent }}%</text>
         </view>
       </view>
     </view>
 
-    <!-- 30 日支出趋势 -->
+    <!-- 月度收支趋势 -->
     <view class="chart-section">
       <view class="section-header">
         <text class="section-title">{{ t('stats.spendingTrend') }}</text>
       </view>
-      <view class="trend-chart">
-        <view class="trend-bars">
-          <view
-            class="trend-bar"
-            v-for="day in dailyTrend"
-            :key="day.date"
-            :style="{ height: getBarHeight(day.total) + 'rpx' }"
-          >
-            <text class="bar-date">{{ day.date.slice(3) }}</text>
+      
+      <!-- 原生分组柱状图 -->
+      <view class="trend-chart-native">
+        <!-- Y 轴标签 -->
+        <view class="y-axis-labels">
+          <text class="y-label">{{ formatYAxis(maxAmount, isEnglish) }}</text>
+          <text class="y-label">{{ formatYAxis(maxAmount * 0.75, isEnglish) }}</text>
+          <text class="y-label">{{ formatYAxis(maxAmount * 0.5, isEnglish) }}</text>
+          <text class="y-label">{{ formatYAxis(maxAmount * 0.25, isEnglish) }}</text>
+          <text class="y-label">0</text>
+        </view>
+        
+        <!-- 图表区域 -->
+        <view class="chart-area">
+          <!-- 网格线 -->
+          <view class="grid-lines">
+            <view class="grid-line" v-for="i in 5" :key="i"></view>
           </view>
+          
+          <!-- 柱状图 -->
+          <view class="bars-container">
+            <view
+              class="bar-group"
+              v-for="(item, index) in dailyTrendWithIncome"
+              :key="item.date"
+            >
+              <!-- 柱子容器 -->
+              <view class="bar-wrapper">
+                <!-- 支出柱 -->
+                <view
+                  class="bar expense-bar"
+                  :style="{
+                    height: getBarHeight(item.expense, maxAmount) + 'rpx',
+                    opacity: item.expense > 0 ? 1 : 0.2
+                  }"
+                ></view>
+                <!-- 收入柱 -->
+                <view
+                  class="bar income-bar"
+                  :style="{
+                    height: getBarHeight(item.income, maxAmount) + 'rpx',
+                    opacity: item.income > 0 ? 1 : 0.2
+                  }"
+                ></view>
+              </view>
+              <!-- 日期标签 -->
+              <text class="date-label">{{ item.day }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 图例 -->
+      <view class="legend-inline">
+        <view class="legend-item">
+          <view class="legend-dot expense-dot"></view>
+          <text class="legend-text">{{ t('bills.expense') }}</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot income-dot"></view>
+          <text class="legend-text">{{ t('bills.income') }}</text>
+        </view>
+      </view>
+      
+      <!-- Tooltip -->
+      <view class="tooltip" v-if="tooltip.visible" :style="{ left: tooltip.left + 'rpx', top: tooltip.top + 'rpx' }">
+        <text class="tooltip-date">{{ tooltip.date }}{{ isEnglish ? t('date.daySuffix') : t('date.daySuffixZh') }}</text>
+        <view class="tooltip-row" v-if="tooltip.expense !== null">
+          <view class="tooltip-dot expense-dot"></view>
+          <text class="tooltip-label">{{ t('bills.expense') }}:</text>
+          <text class="tooltip-value">¥{{ formatAmount(tooltip.expense) }}</text>
+        </view>
+        <view class="tooltip-row" v-if="tooltip.income !== null">
+          <view class="tooltip-dot income-dot"></view>
+          <text class="tooltip-label">{{ t('bills.income') }}:</text>
+          <text class="tooltip-value">¥{{ formatAmount(tooltip.income) }}</text>
         </view>
       </view>
     </view>
@@ -117,9 +185,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useBillsStore } from '@/store/bills'
-import { formatAmount, getYearMonth } from '@/utils/format'
+import { formatAmount, getYearMonth, navigateMonth } from '@/utils/format'
 import { getDeepAnalysisStream, parseAiReport } from '@/utils/ai-ledger'
-import { t } from '@/i18n'
+import { getAiConfig } from '@/utils/ai-config'
+import { t, useLanguage } from '@/i18n'
 
 const billsStore = useBillsStore()
 
@@ -129,6 +198,20 @@ const aiReport = ref([])
 const analysisSteps = ref([])
 const currentText = ref('')
 const showDeepAnalysisModal = ref(false)
+
+// Tooltip 状态
+const tooltip = ref({
+  visible: false,
+  left: 0,
+  top: 0,
+  date: '',
+  expense: null,
+  income: null
+})
+
+// 判断当前语言（使用 i18n 响应式状态）
+const langState = useLanguage()
+const isEnglish = computed(() => langState.lang === 'en')
 
 // 监听弹框状态，控制背景页面滚动
 watch(showDeepAnalysisModal, (newVal) => {
@@ -148,18 +231,157 @@ function closeAnalysisModal() {
   }
 }
 
-// 计算属性
+// 月份切换 - 使用与账单页面一致的格式
 const currentMonthLabel = computed(() => {
-  const now = new Date()
-  return `${now.getMonth() + 1}月`
+  const yearMonth = billsStore.selectedMonth || getYearMonth()
+  const [year, month] = yearMonth.split('-')
+  return t('date.yearMonth', { year, month: parseInt(month) })
 })
+
+function prevMonth() {
+  const current = billsStore.selectedMonth || getYearMonth()
+  billsStore.setSelectedMonth(navigateMonth(current, -1))
+}
+
+function nextMonth() {
+  const current = billsStore.selectedMonth || getYearMonth()
+  billsStore.setSelectedMonth(navigateMonth(current, 1))
+}
 
 const categoryBreakdown = computed(() => billsStore.categoryBreakdown)
 const dailyTrend = computed(() => billsStore.dailyTrend)
 
-const maxDailyAmount = computed(() => {
-  return Math.max(...dailyTrend.value.map(d => d.total), 1)
+// 包含收入和支出的每日趋势
+const dailyTrendWithIncome = computed(() => billsStore.dailyTrendWithIncome)
+
+// 分类翻译映射（使用中文作为 key，与账单存储一致）
+const categoryI18nKeys = {
+  // 支出分类
+  '餐饮': 'categories.dining',
+  '咖啡茶饮': 'categories.coffeeTea',
+  '零食': 'categories.snacks',
+  '食材': 'categories.groceries',
+  '房租': 'categories.rent',
+  '房贷': 'categories.mortgage',
+  '物业': 'categories.property',
+  '水电燃气': 'categories.utilities',
+  '维修': 'categories.maintenance',
+  '交通': 'categories.transport',
+  '打车': 'categories.rideHailing',
+  '公共交通': 'categories.publicTransport',
+  '加油': 'categories.fuel',
+  '停车': 'categories.parking',
+  '车辆保养': 'categories.carMaintenance',
+  '购物': 'categories.shopping',
+  '服饰': 'categories.clothing',
+  '数码': 'categories.electronics',
+  '家居': 'categories.home',
+  '美妆': 'categories.beauty',
+  '书籍': 'categories.books',
+  '娱乐': 'categories.entertainment',
+  '电影': 'categories.movies',
+  '游戏': 'categories.games',
+  '旅行': 'categories.travel',
+  '健身': 'categories.fitness',
+  '学习': 'categories.learning',
+  '培训': 'categories.training',
+  '会员订阅': 'categories.subscriptions',
+  '医疗': 'categories.medical',
+  '药品': 'categories.medicine',
+  '保健品': 'categories.healthProducts',
+  '通讯': 'categories.communication',
+  '话费': 'categories.phoneBill',
+  '网费': 'categories.internet',
+  '贷款': 'categories.loan',
+  '保险': 'categories.insurance',
+  '手续费': 'categories.fees',
+  '红包': 'categories.redEnvelope',
+  '礼物': 'categories.gifts',
+  '聚餐': 'categories.diningOut',
+  // 收入分类
+  '工资': 'categories.salary',
+  '奖金': 'categories.bonus',
+  '兼职': 'categories.parttime',
+  '理财': 'categories.investment',
+  '租金': 'categories.rentalIncome',
+  '报销': 'categories.reimbursement',
+  '礼金': 'categories.cashGifts',
+  // 默认
+  '其他': 'categories.other'
+}
+
+// 带翻译的分类统计
+const categoryBreakdownWithI18n = computed(() => {
+  return categoryBreakdown.value.map(item => ({
+    ...item,
+    categoryName: t(categoryI18nKeys[item.category] || 'categories.other')
+  }))
 })
+
+// 计算 Y 轴最大值
+const maxAmount = computed(() => {
+  const trend = dailyTrendWithIncome.value
+  if (trend.length === 0) return 1000
+  
+  const max = Math.max(
+    ...trend.map(item => Math.max(item.expense, item.income)),
+    1
+  )
+  // 向上取整到百位
+  return Math.ceil(max * 1.1 / 100) * 100
+})
+
+// 格式化 Y 轴标签
+const formatYAxis = (value, isEn) => {
+  const val = Math.round(value)
+  if (val >= 10000) {
+    return isEn ? `${(val / 1000).toFixed(0)}k` : `${(val / 10000).toFixed(0)}万`
+  }
+  if (val >= 1000) {
+    return isEn ? `${(val / 1000).toFixed(0)}k` : `${(val / 1000).toFixed(0)}千`
+  }
+  return val.toString()
+}
+
+// 计算柱子高度（rpx）- 图表高度约 240rpx
+const getBarHeight = (amount, max) => {
+  if (max === 0 || amount === 0) return 4 // 最小高度
+  const chartHeight = 240 // 图表区域高度 rpx
+  const height = (amount / max) * chartHeight
+  return Math.max(height, 4) // 至少 4rpx 可见
+}
+
+// 显示 Tooltip
+const showTooltip = (item, type) => {
+  // 获取点击位置信息（简化版本，显示在柱子附近）
+  const dayIndex = dailyTrendWithIncome.value.findIndex(i => i.date === item.date)
+  const barWidth = 24 // 每组柱子宽度约 24rpx
+  const gap = 8 // 间距 8rpx
+  const totalBars = dailyTrendWithIncome.value.length
+  
+  // 计算水平位置（简化，实际可根据屏幕宽度调整）
+  const left = 80 + dayIndex * (barWidth + gap)
+  const top = 100
+  
+  tooltip.value = {
+    visible: true,
+    left,
+    top,
+    date: item.day,
+    expense: item.expense,
+    income: item.income
+  }
+  
+  // 3 秒后自动隐藏
+  setTimeout(() => {
+    tooltip.value.visible = false
+  }, 3000)
+}
+
+// 点击图表区域隐藏 tooltip
+const hideTooltip = () => {
+  tooltip.value.visible = false
+}
 
 // 方法
 function getSegmentStyle(item, index) {
@@ -174,14 +396,8 @@ function getSegmentStyle(item, index) {
 }
 
 function getSegmentColor(index) {
-  const colors = ['#A8C5A0', '#7A9B76', '#5C7A5A', '#445C44', '#3D3D3F', '#5C5C5C', '#7A7A7A', '#9A9A9A']
+  const colors = ['var(--accent)', 'var(--success)', '#5C7A5A', '#445C44', '#3D3D3F', '#5C5C5C', '#7A7A7A', '#9A9A9A']
   return colors[index % colors.length]
-}
-
-function getBarHeight(amount) {
-  const max = 200
-  const min = 20
-  return min + (amount / maxDailyAmount.value) * (max - min)
 }
 
 function getSectionIcon(tag) {
@@ -197,6 +413,26 @@ function openAnalysisModal() {
 
 async function handleDeepAnalysis() {
   if (aiLoading.value) return
+  
+  // 第一步：检查 AI 配置
+  const config = getAiConfig()
+  if (!config.enabled || !config.baseUrl || !config.apiKey) {
+    showDeepAnalysisModal.value = false
+    uni.showModal({
+      title: t('stats.aiNotConfiguredTitle'),
+      content: t('stats.aiNeedConfigMsg'),
+      confirmText: t('stats.aiConfirmGoSettings'),
+      cancelText: t('stats.aiCancel'),
+      success: (res) => {
+        if (res.confirm) {
+          uni.navigateTo({
+            url: '/pages/settings/ai-settings'
+          })
+        }
+      }
+    })
+    return
+  }
   
   aiLoading.value = true
   aiReport.value = []
@@ -220,8 +456,6 @@ async function handleDeepAnalysis() {
       })
       return
     }
-
-    // 模拟分析过程，流式输出
     let stepIndex = 0
     
     await new Promise(resolve => setTimeout(resolve, 800))
@@ -262,7 +496,7 @@ async function handleDeepAnalysis() {
     
     // 成功提示
     uni.showToast({
-      title: '分析完成 ✓',
+      title: t('stats.aiComplete'),
       icon: 'success'
     })
   } catch (error) {
@@ -272,40 +506,64 @@ async function handleDeepAnalysis() {
     // 根据错误类型给出更友好的提示
     if (errorMessage.includes('未启用') || errorMessage.includes('配置')) {
       aiReport.value = [{ 
-        tag: '⚠️ 需要配置', 
-        content: 'AI 功能需要先配置 API Key。\n\n请点击页面右上角 ⚙️ 图标，选择服务商并填写 API Key 即可使用分析功能。\n\n支持：通义千问、DeepSeek 等主流 AI 服务。' 
+        tag: t('stats.aiNeedConfig'), 
+        content: t('stats.aiNeedConfigMsg')
       }]
+      // 显示确认对话框，可跳转到设置页面
+      uni.showModal({
+        title: t('stats.aiNotConfiguredTitle'),
+        content: t('stats.aiNotConfiguredMsg'),
+        confirmText: t('stats.aiConfirmGoSettings'),
+        cancelText: t('stats.aiCancel'),
+        success: (res) => {
+          if (res.confirm) {
+            uni.navigateTo({
+              url: '/pages/settings/ai-settings'
+            })
+          }
+        }
+      })
     } else if (errorMessage.includes('API Key 无效') || errorMessage.includes('401')) {
       aiReport.value = [{ 
-        tag: '⚠️ Key 无效', 
-        content: '当前 API Key 可能已过期或不正确。\n\n请前往设置页面检查并更新 API Key。' 
+        tag: t('stats.aiInvalidKey'), 
+        content: t('stats.aiInvalidKeyMsg')
       }]
+      // 显示确认对话框，可跳转到设置页面
+      uni.showModal({
+        title: t('stats.aiInvalidKeyTitle'),
+        content: t('stats.aiInvalidKeyMsgDialog'),
+        confirmText: t('stats.aiConfirmGoSettings'),
+        cancelText: t('stats.aiCancel'),
+        success: (res) => {
+          if (res.confirm) {
+            uni.navigateTo({
+              url: '/pages/settings/ai-settings'
+            })
+          }
+        }
+      })
     } else if (errorMessage.includes('超时')) {
       aiReport.value = [{ 
-        tag: '⚠️ 网络超时', 
-        content: 'AI 服务响应超时，可能是网络问题或服务繁忙。\n\n建议：\n1. 检查网络连接\n2. 稍后重试\n3. 确认 API Key 有效' 
+        tag: t('stats.aiTimeout'), 
+        content: t('stats.aiTimeoutMsg')
       }]
+      uni.showToast({
+        title: t('stats.aiRequestTimeout'),
+        icon: 'none'
+      })
     } else {
       aiReport.value = [{ 
-        tag: '⚠️ 分析失败', 
-        content: errorMessage 
+        tag: t('stats.aiError'), 
+        content: t('stats.aiAnalysisFailedDetail') + errorMessage 
       }]
+      uni.showToast({
+        title: t('stats.aiAnalysisFailed'),
+        icon: 'none'
+      })
     }
-    
-    // 失败提示
-    uni.showToast({
-      title: '分析失败',
-      icon: 'none'
-    })
   } finally {
     aiLoading.value = false
   }
-}
-
-function goToSettings() {
-  uni.navigateTo({
-    url: '/pages/settings/ai-settings'
-  })
 }
 
 onMounted(() => {
@@ -316,7 +574,7 @@ onMounted(() => {
 <style scoped>
 .stats-page {
   min-height: 100vh;
-  background-color: #0E0E10;
+  background-color: var(--bg-primary);
   padding: 24rpx;
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
   position: relative;
@@ -328,31 +586,228 @@ onMounted(() => {
   height: 100vh;
 }
 
-.settings-entry {
+/* 顶部操作栏 */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 28rpx;
+  margin-bottom: 24rpx;
+}
+
+/* 月份切换器 */
+.month-selector {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
+  gap: 32rpx;
 }
 
-.settings-entry:active {
-  background-color: rgba(255, 255, 255, 0.1);
+.nav-btn {
+  font-size: 36rpx;
+  color: var(--text-secondary);
+  padding: 8rpx 16rpx;
+  transition: color 0.2s ease;
 }
 
-.settings-icon {
+.nav-btn:active {
+  color: var(--text-primary);
+}
+
+.month-label {
   font-size: 32rpx;
+  color: var(--text-primary);
+  font-family: 'DM Serif Display', serif;
+  font-weight: 600;
+  min-width: 120rpx;
+  text-align: center;
 }
 
 .chart-section {
-  background-color: #161618;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  background-color: var(--bg-surface);
+  border: 1rpx solid var(--divider);
   border-radius: 16rpx;
   padding: 28rpx;
   margin-bottom: 24rpx;
+}
+
+/* 原生图表容器 */
+.trend-chart-native {
+  position: relative;
+  display: flex;
+  height: 320rpx;
+  margin-bottom: 16rpx;
+}
+
+/* Y 轴标签 */
+.y-axis-labels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 70rpx;
+  padding-right: 12rpx;
+}
+
+.y-label {
+  font-size: 18rpx;
+  color: var(--text-secondary);
+  text-align: right;
+  line-height: 1;
+}
+
+/* 图表区域 */
+.chart-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 网格线 */
+.grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 40rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.grid-line {
+  height: 1rpx;
+  background-color: var(--divider);
+  opacity: 0.5;
+}
+
+/* 柱子容器 */
+.bars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 40rpx;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 4rpx;
+}
+
+/* 每组柱子 */
+.bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  gap: 6rpx;
+}
+
+/* 柱子容器（内部）*/
+.bar-wrapper {
+  display: flex;
+  gap: 4rpx;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 柱子 */
+.bar {
+  width: 20rpx;
+  border-radius: 2rpx 2rpx 0 0;
+  min-height: 4rpx;
+}
+
+.expense-bar {
+  background-color: #f44336;
+}
+
+.income-bar {
+  background-color: #4caf50;
+}
+
+/* 日期标签 */
+.date-label {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  transform: rotate(0deg);
+  white-space: nowrap;
+}
+
+/* 图例 */
+.legend-inline {
+  display: flex;
+  justify-content: center;
+  gap: 48rpx;
+  margin-top: 16rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 4rpx;
+}
+
+.expense-dot {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(244, 67, 54, 0.6));
+}
+
+.income-dot {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(76, 175, 80, 0.6));
+}
+
+.legend-text {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  z-index: 1000;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.tooltip-date {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 6rpx;
+}
+
+.tooltip-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 2rpx;
+  flex-shrink: 0;
+}
+
+.tooltip-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tooltip-value {
+  font-weight: 600;
+  color: #fff;
 }
 
 .section-header {
@@ -364,13 +819,13 @@ onMounted(() => {
 
 .section-title {
   font-size: 28rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .section-subtitle {
   font-size: 22rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
 }
 
 .chart-container {
@@ -400,7 +855,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 26rpx;
-  color: #3D3D3F;
+  color: var(--text-muted);
 }
 
 .legend-list {
@@ -425,59 +880,33 @@ onMounted(() => {
 .legend-label {
   flex: 1;
   font-size: 24rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
 }
 
 .legend-amount {
   font-size: 24rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
   font-family: 'Space Mono', monospace;
   margin-right: 12rpx;
 }
 
 .legend-percent {
   font-size: 22rpx;
-  color: #3D3D3F;
+  color: var(--text-muted);
   width: 60rpx;
   text-align: right;
 }
 
 .trend-chart {
-  overflow-x: auto;
-}
-
-.trend-bars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 200rpx;
-  padding: 0 8rpx;
-  gap: 8rpx;
-}
-
-.trend-bar {
-  flex: 1;
-  background: linear-gradient(to top, rgba(168, 197, 160, 0.3), rgba(168, 197, 160, 0.6));
-  border-radius: 4rpx 4rpx 0 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 8rpx;
-  min-height: 20rpx;
-}
-
-.bar-date {
-  font-size: 18rpx;
-  color: #8A8A8A;
-  transform: rotate(-45deg);
-  transform-origin: center;
-  white-space: nowrap;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
 }
 
 /* 分析过程展示 */
 .analysis-process {
-  background-color: #161618;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  background-color: var(--bg-surface);
+  border: 1rpx solid var(--divider);
   border-radius: 12rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
@@ -501,24 +930,24 @@ onMounted(() => {
 }
 
 .process-step.completed .step-icon {
-  color: #A8C5A0;
+  color: var(--accent);
 }
 
 .process-step.current .step-icon {
-  color: #A8C5A0;
+  color: var(--accent);
   animation: pulse 1s infinite;
 }
 
 .step-icon {
   font-size: 24rpx;
-  color: #3D3D3F;
+  color: var(--text-muted);
   width: 32rpx;
   text-align: center;
 }
 
 .step-text {
   font-size: 24rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
 }
 
 @keyframes pulse {
@@ -533,8 +962,8 @@ onMounted(() => {
 }
 
 .report-section {
-  background-color: #161618;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  background-color: var(--bg-surface);
+  border: 1rpx solid var(--divider);
   border-radius: 12rpx;
   padding: 24rpx;
   opacity: 0;
@@ -558,13 +987,13 @@ onMounted(() => {
 
 .tag-label {
   font-size: 22rpx;
-  color: #A8C5A0;
+  color: var(--accent);
   font-weight: 600;
 }
 
 .report-content {
   font-size: 26rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   line-height: 1.6;
   display: block;
 }
@@ -577,7 +1006,7 @@ onMounted(() => {
 
 .ai-disclaimer text {
   font-size: 20rpx;
-  color: #3D3D3F;
+  color: var(--text-muted);
 }
 
 /* 顶部操作栏 */
@@ -593,7 +1022,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12rpx;
-  background: linear-gradient(135deg, #A8C5A0 0%, #7A9B76 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--success) 100%);
   padding: 20rpx 32rpx;
   border-radius: 40rpx;
   box-shadow: 0 8rpx 24rpx rgba(168, 197, 160, 0.3);
@@ -601,13 +1030,13 @@ onMounted(() => {
 
 .btn-text {
   font-size: 28rpx;
-  color: #0E0E10;
+  color: var(--text-inverse);
   font-weight: 600;
 }
 
 .btn-arrow {
   font-size: 32rpx;
-  color: #0E0E10;
+  color: var(--text-inverse);
 }
 
 /* 深挖分析弹框 */
@@ -638,7 +1067,7 @@ onMounted(() => {
   width: 90%;
   max-width: 600rpx;
   max-height: 80vh;
-  background-color: #0E0E10;
+  background-color: var(--bg-primary);
   border-radius: 24rpx;
   padding: 32rpx;
   box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.6);
@@ -654,18 +1083,18 @@ onMounted(() => {
 
 .modal-title {
   font-size: 32rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .modal-close {
   font-size: 40rpx;
-  color: #3D3D3F;
+  color: var(--text-muted);
   padding: 8rpx;
   line-height: 1;
 }
 
 .modal-close:active {
-  color: #F0EDE6;
+  color: var(--text-primary);
 }
 </style>

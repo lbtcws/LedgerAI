@@ -1,10 +1,5 @@
 <template>
   <view class="ai-settings-page">
-    <view class="header">
-      <text class="title">AI 服务配置</text>
-      <text class="subtitle">配置你自己的 AI 服务商</text>
-    </view>
-
     <!-- 语言选择 -->
     <view class="section">
       <text class="section-title">{{ t('settings.language') }}</text>
@@ -34,30 +29,21 @@
       <view class="theme-list">
         <view
           class="theme-item"
-          :class="{ active: theme === 'dark' }"
+          :class="{ active: theme === 'dark' && !useCustomBg }"
           @click="setTheme('dark')"
         >
           <text class="theme-icon">🌙</text>
           <text class="theme-name">{{ t('settings.themeDark') }}</text>
-          <view class="check-mark" v-if="theme === 'dark'">✓</view>
+          <view class="check-mark" v-if="theme === 'dark' && !useCustomBg">✓</view>
         </view>
         <view
           class="theme-item"
-          :class="{ active: theme === 'light' }"
+          :class="{ active: theme === 'light' && !useCustomBg }"
           @click="setTheme('light')"
         >
           <text class="theme-icon">☀️</text>
           <text class="theme-name">{{ t('settings.themeLight') }}</text>
-          <view class="check-mark" v-if="theme === 'light'">✓</view>
-        </view>
-        <view
-          class="theme-item"
-          :class="{ active: theme === 'auto' }"
-          @click="setTheme('auto')"
-        >
-          <text class="theme-icon">⚙️</text>
-          <text class="theme-name">{{ t('settings.themeAuto') }}</text>
-          <view class="check-mark" v-if="theme === 'auto'">✓</view>
+          <view class="check-mark" v-if="theme === 'light' && !useCustomBg">✓</view>
         </view>
       </view>
     </view>
@@ -66,8 +52,8 @@
     <view class="section">
       <view class="setting-item">
         <view class="setting-label">
-          <text class="label-text">启用 AI 功能</text>
-          <text class="label-desc">关闭后将不使用 AI 分析</text>
+          <text class="label-text">{{ t('settings.enableAi') }}</text>
+          <text class="label-desc">{{ t('settings.enableAiDesc') }}</text>
         </view>
         <switch
           :checked="config.enabled"
@@ -79,7 +65,7 @@
 
     <!-- 服务商选择 -->
     <view class="section" v-if="config.enabled">
-      <text class="section-title">选择服务商</text>
+      <text class="section-title">{{ t('settings.selectProvider') }}</text>
       <view class="provider-list">
         <view
           class="provider-item"
@@ -98,53 +84,53 @@
 
     <!-- API 配置 -->
     <view class="section" v-if="config.enabled">
-      <text class="section-title">API 配置</text>
+      <text class="section-title">{{ t('settings.apiConfig') }}</text>
       
       <view class="form-item">
-        <text class="form-label">API Base URL</text>
+        <text class="form-label">{{ t('settings.apiBaseUrl') }}</text>
         <input
           class="form-input"
           v-model="config.baseUrl"
-          :placeholder="currentProvider.placeholder"
+          :placeholder="currentProvider.baseUrlPlaceholder"
           type="text"
         />
       </view>
 
       <view class="form-item">
-        <text class="form-label">API Key</text>
+        <text class="form-label">{{ t('settings.apiKey') }}</text>
         <input
           class="form-input"
           v-model="config.apiKey"
-          :placeholder="currentProvider.placeholder"
+          :placeholder="currentProvider.apiKeyPlaceholder"
           type="password"
         />
       </view>
 
       <view class="form-item">
-        <text class="form-label">模型名称</text>
+        <text class="form-label">{{ t('settings.modelName') }}</text>
         <input
           class="form-input"
           v-model="config.model"
-          placeholder="例如：qwen-plus"
+          :placeholder="t('settings.modelPlaceholder')"
           type="text"
         />
       </view>
 
       <!-- 预设信息展示 -->
       <view class="provider-info" v-if="showProviderInfo">
-        <text class="info-label">当前服务商：</text>
+        <text class="info-label">{{ t('settings.currentProvider') }}</text>
         <text class="info-value">{{ currentProvider.name }}</text>
-        <text class="info-model">模型：{{ currentProvider.model || '自定义' }}</text>
+        <text class="info-model">{{ t('settings.currentModel') }}{{ currentProvider.model || t('settings.providerCustom') }}</text>
       </view>
     </view>
 
     <!-- 保存按钮 -->
     <view class="actions">
       <button class="save-btn" :disabled="!canSave" @click="handleSave">
-        保存配置
+        {{ t('settings.saveConfig') }}
       </button>
       <button class="test-btn" :disabled="!canSave || testing" @click="handleTest">
-        {{ testing ? '测试中...' : '测试连接' }}
+        {{ testing ? t('settings.testing') : t('settings.testConnection') }}
       </button>
     </view>
 
@@ -157,25 +143,19 @@
 
     <!-- 帮助说明 -->
     <view class="help-section">
-      <text class="help-title">💡 如何获取 API Key</text>
+      <text class="help-title">{{ t('settings.howToGetKey') }}</text>
       <view class="help-list">
-        <text class="help-item">• 通义千问：https://dashscope.console.aliyun.com/apiKey</text>
-        <text class="help-item">• DeepSeek：https://platform.deepseek.com/api_keys</text>
-        <text class="help-item">• 自定义：填写任意兼容 OpenAI 格式的 API 服务</text>
+        <text class="help-item">{{ t('settings.howToGetKeyDesc1') }}</text>
+        <text class="help-item">{{ t('settings.howToGetKeyDesc2') }}</text>
+        <text class="help-item">{{ t('settings.howToGetKeyDesc3') }}</text>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { 
-  getAiConfig, 
-  saveAiConfig, 
-  validateAiConfig, 
-  getProviderInfo,
-  AI_PROVIDERS 
-} from '@/utils/ai-config'
+import { ref, computed, onMounted, watch } from 'vue'
+import { getAiConfig, getProviderInfo, saveAiConfig, validateAiConfig, AI_PROVIDERS } from '@/utils/ai-config'
 import { callAi } from '@/utils/ai-ledger'
 import { t, setLanguage, useLanguage } from '@/i18n'
 import { useConfigStore } from '@/store/config'
@@ -193,6 +173,37 @@ const language = computed(() => langState.lang)
 
 // 使用响应式主题状态
 const theme = computed(() => configStore.theme)
+
+// 动态设置导航栏标题和颜色
+const updateNavigationBar = () => {
+  uni.setNavigationBarTitle({
+    title: t('settings.aiConfigTitle')
+  })
+  // 根据主题设置导航栏颜色
+  const isDark = theme.value === 'dark'
+  uni.setNavigationBarColor({
+    frontColor: isDark ? '#ffffff' : '#000000',
+    backgroundColor: isDark ? '#0E0E10' : '#F5F5F5',
+    animation: {
+      duration: 300,
+      timingFunc: 'easeIn'
+    }
+  })
+}
+
+onMounted(() => {
+  updateNavigationBar()
+})
+
+// 监听语言变化，动态更新导航栏标题
+watch(language, () => {
+  updateNavigationBar()
+})
+
+// 监听主题变化，动态更新导航栏颜色
+watch(theme, () => {
+  updateNavigationBar()
+})
 
 const currentProvider = computed(() => {
   return getProviderInfo(config.value.provider)
@@ -244,11 +255,11 @@ function setTheme(newTheme) {
 async function handleSave() {
   if (!config.value.enabled) {
     saveAiConfig({ enabled: false })
-    testMessage.value = 'AI 功能已关闭'
+    testMessage.value = t('settings.aiDisabled')
     testSuccess.value = true
     return
   }
-
+  
   const validation = validateAiConfig(config.value)
   if (!validation.valid) {
     testMessage.value = validation.message
@@ -258,10 +269,10 @@ async function handleSave() {
 
   try {
     saveAiConfig(config.value)
-    testMessage.value = '配置已保存'
+    testMessage.value = t('settings.configSaved')
     testSuccess.value = true
   } catch (error) {
-    testMessage.value = '保存失败：' + error.message
+    testMessage.value = t('settings.saveFailed') + error.message
     testSuccess.value = false
   }
 }
@@ -283,22 +294,22 @@ async function handleTest() {
     })
 
     if (result) {
-      testMessage.value = '连接成功！AI 回复：' + result.slice(0, 50) + '...'
+      testMessage.value = t('settings.connectionSuccess') + result.slice(0, 50) + '...'
       testSuccess.value = true
       // 提示用户需要保存配置
       setTimeout(() => {
         uni.showToast({
-          title: '请点击"保存配置"按钮',
+          title: t('settings.pleaseSave'),
           icon: 'none',
           duration: 2000
         })
       }, 500)
     } else {
-      testMessage.value = '连接成功但无返回内容'
+      testMessage.value = t('settings.connectionNoContent')
       testSuccess.value = true
     }
   } catch (error) {
-    testMessage.value = '连接失败：' + error.message
+    testMessage.value = t('settings.connectionFailed') + error.message
     testSuccess.value = false
     // 测试失败时，恢复旧配置
     try {
@@ -325,24 +336,6 @@ onMounted(() => {
   background-color: var(--bg-primary);
   padding: 40rpx 32rpx;
   transition: background-color 0.3s ease;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 48rpx;
-}
-
-.title {
-  display: block;
-  font-size: 44rpx;
-  color: var(--text-primary);
-  font-weight: 600;
-  margin-bottom: 12rpx;
-}
-
-.subtitle {
-  font-size: 26rpx;
-  color: var(--text-secondary);
 }
 
 .section {
@@ -536,6 +529,42 @@ onMounted(() => {
 
 .form-input::placeholder {
   color: var(--text-muted);
+}
+
+/* 颜色选择器 */
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.color-input {
+  flex: 1;
+  background-color: var(--input-bg);
+  border: 1rpx solid var(--border-color);
+  border-radius: 12rpx;
+  padding: 24rpx 28rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.color-input:focus {
+  border-color: var(--accent);
+}
+
+.color-preview {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-preview:active {
+  opacity: 0.8;
+  transform: scale(0.95);
 }
 
 .provider-info {

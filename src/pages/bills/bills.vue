@@ -322,7 +322,7 @@ onMounted(() => {
 <style scoped>
 .bills-page {
   min-height: 100vh;
-  background-color: #0E0E10;
+  background-color: var(--bg-primary);
   padding: 32rpx;
 }
 
@@ -336,17 +336,17 @@ onMounted(() => {
 
 .nav-btn {
   font-size: 40rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
   padding: 16rpx 24rpx;
 }
 
 .nav-btn:active {
-  color: #F0EDE6;
+  color: var(--text-primary);
 }
 
 .month-label {
   font-size: 40rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   font-family: 'DM Serif Display', serif;
   font-weight: 600;
 }
@@ -354,11 +354,11 @@ onMounted(() => {
 .summary-section {
   display: flex;
   justify-content: space-between;
-  background-color: #161618;
+  background-color: var(--bg-surface);
   border-radius: 16rpx;
   padding: 32rpx 24rpx;
   margin-bottom: 32rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  border: 1rpx solid var(--divider);
 }
 
 .summary-item {
@@ -369,7 +369,7 @@ onMounted(() => {
 .summary-label {
   display: block;
   font-size: 22rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 
@@ -382,19 +382,19 @@ onMounted(() => {
 }
 
 .summary-value.expense {
-  color: #E07070;
+  color: var(--danger);
 }
 
 .summary-value.income {
-  color: #A8C5A0;
+  color: var(--accent);
 }
 
 .summary-value.balance-positive {
-  color: #A8C5A0;
+  color: var(--accent);
 }
 
 .summary-value.balance-negative {
-  color: #E07070;
+  color: var(--danger);
 }
 
 .filter-section {
@@ -405,16 +405,16 @@ onMounted(() => {
 
 .filter-chip {
   padding: 12rpx 24rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  border: 1rpx solid var(--divider);
   border-radius: 20rpx;
   font-size: 24rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
 }
 
 .filter-chip.active {
-  background-color: #A8C5A0;
-  border-color: #A8C5A0;
-  color: #0E0E10;
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-inverse);
   font-weight: 600;
 }
 
@@ -428,13 +428,13 @@ onMounted(() => {
 
 .date-header {
   padding: 16rpx 0;
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1rpx solid var(--divider);
   margin-bottom: 8rpx;
 }
 
 .date-text {
   font-size: 24rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
 }
 
 .empty-state {
@@ -444,7 +444,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 26rpx;
-  color: #3D3D3F;
+  color: var(--text-muted);
 }
 
 /* 编辑弹窗 */
@@ -474,10 +474,10 @@ onMounted(() => {
   width: 90%;
   max-width: 600rpx;
   max-height: 80vh;
-  background-color: #161618;
+  background-color: var(--bg-surface);
   border-radius: 20rpx;
   padding: 32rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border: 1rpx solid var(--divider);
   animation: slideUp 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -507,23 +507,23 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 32rpx;
   padding-bottom: 24rpx;
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1rpx solid var(--divider);
 }
 
 .modal-title {
   font-size: 32rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .modal-close {
   font-size: 32rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
   padding: 8rpx 16rpx;
 }
 
 .modal-close:active {
-  color: #F0EDE6;
+  color: var(--text-primary);
 }
 
 .form-row {
@@ -533,7 +533,7 @@ onMounted(() => {
 .form-label {
   display: block;
   font-size: 24rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 
@@ -541,21 +541,21 @@ onMounted(() => {
   width: 100%;
   height: 80rpx;
   background-color: rgba(255, 255, 255, 0.05);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border: 1rpx solid var(--divider);
   border-radius: 12rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 
 .form-input::placeholder {
-  color: #3D3D3F;
+  color: var(--text-muted);
 }
 
 .picker-value {
   font-size: 28rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   line-height: 80rpx;
   height: 100%;
   display: flex;
@@ -574,16 +574,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   background-color: rgba(255, 255, 255, 0.05);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border: 1rpx solid var(--divider);
   border-radius: 12rpx;
   font-size: 28rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
 }
 
 .type-btn.active {
-  background-color: #A8C5A0;
-  border-color: #A8C5A0;
-  color: #0E0E10;
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-inverse);
   font-weight: 600;
 }
 
@@ -602,16 +602,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   background-color: rgba(255, 255, 255, 0.05);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border: 1rpx solid var(--divider);
   border-radius: 12rpx;
   font-size: 24rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
 }
 
 .category-tag.active {
-  background-color: #A8C5A0;
-  border-color: #A8C5A0;
-  color: #0E0E10;
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-inverse);
   font-weight: 600;
 }
 
@@ -633,7 +633,7 @@ onMounted(() => {
 
 .btn-delete {
   background-color: rgba(224, 112, 112, 0.15);
-  color: #E07070;
+  color: var(--danger);
   border: 1rpx solid rgba(224, 112, 112, 0.3);
 }
 
@@ -642,13 +642,13 @@ onMounted(() => {
 }
 
 .btn-save {
-  background-color: #A8C5A0;
-  color: #0E0E10;
+  background-color: var(--accent);
+  color: var(--text-inverse);
   font-weight: 600;
 }
 
 .btn-save:active {
-  background-color: #7A9B76;
+  background-color: var(--success);
 }
 
 /* 保存状态提示 */
@@ -658,7 +658,7 @@ onMounted(() => {
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(168, 197, 160, 0.95);
-  color: #0E0E10;
+  color: var(--text-inverse);
   padding: 16rpx 32rpx;
   border-radius: 20rpx;
   font-size: 28rpx;

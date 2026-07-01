@@ -13,19 +13,22 @@ export const AI_PROVIDERS = {
     name: '通义千问',
     baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
     model: 'qwen-plus',
-    placeholder: 'sk-xxx...xxxx'
+    baseUrlPlaceholder: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    apiKeyPlaceholder: 'sk-xxx...xxxx'
   },
   deepseek: {
     name: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com/v1/chat/completions',
     model: 'deepseek-chat',
-    placeholder: 'sk-xxx...xxxx'
+    baseUrlPlaceholder: 'https://api.deepseek.com/v1/chat/completions',
+    apiKeyPlaceholder: 'sk-xxx...xxxx'
   },
   custom: {
     name: '自定义',
     baseUrl: '',
     model: '',
-    placeholder: '输入 API Base URL'
+    baseUrlPlaceholder: '输入 API Base URL',
+    apiKeyPlaceholder: '输入 API Key'
   }
 }
 

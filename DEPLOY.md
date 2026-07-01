@@ -2,14 +2,27 @@
 
 ## 已完成配置
 
-1. **vite.config.ts** - 已添加 `base: '/LedgerAI/'` 配置
+1. **vite.config.ts** - 已配置 `base: '/LedgerAI/'` 路径
 2. **src/manifest.json** - 已配置 H5 hash 路由模式（GitHub Pages 不支持 history 模式）
-3. **dist/build/h5/.nojekyll** - 已创建，防止 GitHub Pages 忽略下划线开头的文件
-4. **.github/workflows/deploy.yml** - GitHub Actions 一键部署工作流
-5. **i18n 国际化** - 全页面支持中英文切换
-6. **主题系统** - 支持深色/浅色/跟随系统三种主题
+3. **public/landing.html** - 现代化落地页，作为 GitHub Pages 首页
+4. **dist/build/h5/.nojekyll** - 已创建，防止 GitHub Pages 忽略下划线开头的文件
+5. **.github/workflows/deploy.yml** - GitHub Actions 自动部署工作流
+6. **i18n 国际化** - 全页面支持中英文切换
+7. **主题系统** - 支持深色/浅色/跟随系统三种主题
 
 ## 新功能
+
+### 现代化落地页
+- Apple 风格极简设计，渐变色彩
+- 响应式布局，支持移动端和桌面端
+- 深色模式自动适配
+- 流畅动画效果
+- 功能介绍、应用预览、CTA 引导
+
+### 自动化部署
+- 推送到 main 分支自动触发构建部署
+- 支持手动触发工作流
+- 自动处理并发构建
 
 ### 国际化（i18n）
 - 点击设置页面可切换语言（简体中文 / English）
@@ -22,21 +35,6 @@
 
 ## 一键发布（推荐）
 
-### 步骤 0：提交修复（重要！）
-
-已修复问题：
-- 删除了 `pnpm-workspace.yaml`（导致 packages field missing 错误）
-- 更新 pnpm 版本为 8（兼容 Node.js v20）
-- 重新生成 pnpm-lock.yaml（lockfileVersion 6.0）
-- 完善 i18n 翻译系统和主题切换功能
-
-```bash
-cd /root/code/LedgerAI
-git add .
-git commit -m "Fix: pnpm v8 compatibility + i18n + theme system"
-git push origin main
-```
-
 ### 步骤 1：首次设置 GitHub Pages
 
 1. 打开 GitHub 仓库 → **Settings** → **Pages**
@@ -48,17 +46,18 @@ git push origin main
 ```bash
 cd /root/code/LedgerAI
 git add .
-git commit -m "Setup GitHub Pages deployment"
+git commit -m "Setup GitHub Pages with modern landing page"
 git push origin main
 ```
 
-### 步骤 3：触发一键部署
+### 步骤 3：等待自动部署
 
-1. 打开 GitHub 仓库 → **Actions** 标签
-2. 点击左侧 **"Deploy to GitHub Pages"** 工作流
-3. 点击 **"Run workflow"** 按钮
-4. 选择分支（main），点击 **"Run workflow"**
-5. 等待部署完成（约 1-2 分钟）
+推送后 GitHub Actions 会自动触发构建和部署：
+- 访问仓库 **Actions** 标签
+- 查看 "Deploy to GitHub Pages" 工作流运行状态
+- 等待部署完成（约 1-2 分钟）
+
+> 💡 也可以手动触发：Actions → Deploy to GitHub Pages → Run workflow
 
 ### 步骤 4：访问网站
 
@@ -66,6 +65,8 @@ git push origin main
 ```
 https://YOUR_USERNAME.github.io/LedgerAI/
 ```
+
+你将看到现代化的落地页，点击 "立即体验" 即可进入应用。
 
 ## 手动部署（备选）
 

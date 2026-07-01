@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { getYearMonth, getDaysInMonth } from '@/utils/format'
 
 // Mock 数据 - 首次启动时预置
 const MOCK_BILLS = [
@@ -23,12 +24,24 @@ const MOCK_BILLS = [
 export const useBillsStore = defineStore('bills', () => {
   // state
   const bills = ref([])
+  const selectedMonth = ref(null) // null 表示当前月份
 
   // getters
   const currentMonthBills = computed(() => {
-    const now = new Date()
-    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const yearMonth = selectedMonth.value || getYearMonth()
     return bills.value.filter(b => b.date.startsWith(yearMonth))
+  })
+
+  const monthLabel = computed(() => {
+    const yearMonth = selectedMonth.value || getYearMonth()
+    const [year, month] = yearMonth.split('-')
+    // 使用 i18n 格式化
+    try {
+      const { t } = require('@/i18n')
+      return t('date.monthLabel', { year, month: parseInt(month) })
+    } catch {
+      return `${year}年${parseInt(month)}月`
+    }
   })
 
   const currentMonthSummary = computed(() => {
@@ -63,17 +76,51 @@ export const useBillsStore = defineStore('bills', () => {
   })
 
   const dailyTrend = computed(() => {
-    const days = 30
+    const yearMonth = selectedMonth.value || getYearMonth()
+    const daysInMonth = getDaysInMonth(yearMonth)
     const trend = []
-    const now = new Date()
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now)
-      date.setDate(date.getDate() - i)
-      const dateStr = date.toISOString().split('T')[0]
+    
+    const [year, month] = yearMonth.split('-').map(Number)
+    
+    // 遍历该月的每一天
+    for (let day = 1; day <= daysInMonth; day++) {
+      // 直接使用本地时间构建日期字符串，避免时区问题
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
       const total = bills.value
         .filter(b => b.date === dateStr && b.type === 'EXPENSE')
         .reduce((sum, b) => sum + b.amount, 0)
       trend.push({ date: dateStr.slice(5), total })
+    }
+    return trend
+  })
+
+  // 包含收入和支出的每日趋势（分组柱状图数据）
+  const dailyTrendWithIncome = computed(() => {
+    const yearMonth = selectedMonth.value || getYearMonth()
+    const daysInMonth = getDaysInMonth(yearMonth)
+    const trend = []
+    
+    const [year, month] = yearMonth.split('-').map(Number)
+    
+    // 遍历该月的每一天
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      const dayBills = bills.value.filter(b => b.date === dateStr)
+      
+      const expense = dayBills
+        .filter(b => b.type === 'EXPENSE')
+        .reduce((sum, b) => sum + b.amount, 0)
+      
+      const income = dayBills
+        .filter(b => b.type === 'INCOME')
+        .reduce((sum, b) => sum + b.amount, 0)
+      
+      trend.push({
+        date: dateStr,
+        day: dateStr.slice(8),  // DD
+        expense,
+        income
+      })
     }
     return trend
   })
@@ -144,18 +191,26 @@ export const useBillsStore = defineStore('bills', () => {
     persistToStorage()
   }
 
+  function setSelectedMonth(month) {
+    selectedMonth.value = month
+  }
+
   return {
     bills,
+    selectedMonth,
     currentMonthBills,
+    monthLabel,
     currentMonthSummary,
     categoryBreakdown,
     dailyTrend,
+    dailyTrendWithIncome,
     recentBills,
     add,
     update,
     remove,
     deleteBill,
     loadFromStorage,
-    clearAll
+    clearAll,
+    setSelectedMonth
   }
 })

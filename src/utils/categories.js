@@ -8,12 +8,25 @@
  */
 function getCurrentLang() {
   try {
-    const { useConfigStore } = require('@/store/config')
-    const store = useConfigStore()
-    return store.language || 'zh'
-  } catch {
-    return 'zh'
+    // 尝试从 localStorage 直接读取配置
+    const configStr = typeof uni !== 'undefined' 
+      ? uni.getStorageSync('ledger-config')
+      : localStorage.getItem('ledger-config')
+    
+    if (configStr) {
+      const config = typeof configStr === 'string' 
+        ? JSON.parse(configStr)
+        : configStr
+      
+      if (config && config.language) {
+        return config.language
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to get language from config, defaulting to zh', e)
   }
+  
+  return 'zh'
 }
 
 /**

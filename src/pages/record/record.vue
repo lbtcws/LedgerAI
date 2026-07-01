@@ -127,7 +127,7 @@ onMounted(() => {
 <style scoped>
 .record-page {
   min-height: 100vh;
-  background-color: #0E0E10;
+  background-color: var(--bg-primary);
   padding: 40rpx 32rpx calc(80rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
@@ -145,7 +145,7 @@ onMounted(() => {
 .type-option {
   padding: 16rpx 48rpx;
   border-radius: 32rpx;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--accent-soft);
   transition: all 0.2s;
 }
 
@@ -155,12 +155,12 @@ onMounted(() => {
 
 .type-text {
   font-size: 32rpx;
-  color: #8A8A8A;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .type-option.active .type-text {
-  color: #A8C5A0;
+  color: var(--accent);
 }
 
 /* 金额输入 */
@@ -173,23 +173,23 @@ onMounted(() => {
 
 .currency {
   font-size: 48rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   font-weight: 300;
   margin-right: 8rpx;
 }
 
 .amount-input {
   font-size: 120rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   font-family: 'Space Mono', monospace;
   font-weight: 600;
   text-align: center;
   width: 500rpx;
-  caret-color: #A8C5A0;
+  caret-color: var(--accent);
 }
 
 .amount-placeholder {
-  color: #3D3D3F;
+  color: var(--text-muted);
 }
 
 /* 备注输入 */
@@ -202,16 +202,16 @@ onMounted(() => {
   width: 100%;
   height: 88rpx;
   background-color: transparent;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  border: 1rpx solid var(--divider);
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   text-align: center;
 }
 
 .note-placeholder {
-  color: #3D3D3F;
+  color: var(--text-muted);
 }
 
 /* 提交按钮 */
@@ -224,10 +224,10 @@ onMounted(() => {
   width: 100%;
   height: 96rpx;
   background-color: transparent;
-  border: 1rpx solid rgba(168, 197, 160, 0.3);
+  border: 1rpx solid var(--accent-border);
   border-radius: 16rpx;
   font-size: 32rpx;
-  color: rgba(168, 197, 160, 0.5);
+  color: var(--accent);
   font-weight: 500;
   transition: all 0.2s;
   display: flex;
@@ -236,18 +236,18 @@ onMounted(() => {
 }
 
 .submit-btn.can-submit {
-  border-color: #A8C5A0;
-  color: #A8C5A0;
-  background-color: rgba(168, 197, 160, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  background-color: var(--accent-soft);
 }
 
 .submit-btn-active {
-  background-color: rgba(168, 197, 160, 0.15);
+  background-color: var(--accent-soft);
   transform: scale(0.98);
 }
 
 .submit-btn.can-submit:active {
-  background-color: #A8C5A0;
-  color: #0E0E10;
+  background-color: var(--accent);
+  color: var(--text-inverse);
 }
 </style>

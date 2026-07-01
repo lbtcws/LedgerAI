@@ -11,14 +11,18 @@ onLaunch(() => {
   
   // 初始化主题
   const configStore = useConfigStore()
-  configStore.applyTheme(configStore.theme)
+  if (configStore.useCustomBg) {
+    configStore.applyCustomBg(configStore.customBgColor)
+  } else {
+    configStore.applyTheme(configStore.theme)
+  }
 })
 </script>
 
 <style>
 /* ========== 主题系统 - CSS Variables ========== */
 /* 深色主题（默认） */
-page[data-theme="dark"] {
+:root[data-theme="dark"] {
   --bg-primary: #0E0E10;
   --bg-surface: #161618;
   --bg-elevated: #1C1C1F;
@@ -41,7 +45,7 @@ page[data-theme="dark"] {
 }
 
 /* 浅色主题 */
-page[data-theme="light"] {
+:root[data-theme="light"] {
   --bg-primary: #FAFAF9;
   --bg-surface: #FFFFFF;
   --bg-elevated: #F5F5F4;
@@ -64,7 +68,7 @@ page[data-theme="light"] {
 }
 
 /* 默认应用深色主题 */
-page {
+:root {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

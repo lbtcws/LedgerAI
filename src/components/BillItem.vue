@@ -52,7 +52,7 @@ function handleEdit() {
 
 .category-text {
   font-size: 26rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -66,7 +66,7 @@ function handleEdit() {
 
 .bill-note {
   font-size: 28rpx;
-  color: #F0EDE6;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

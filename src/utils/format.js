@@ -109,6 +109,18 @@ export function getYearMonth(date = new Date()) {
 }
 
 /**
+ * 获取指定月份的天数
+ * @param {string} yearMonth - 年月 YYYY-MM
+ * @returns {number} 该月的天数
+ */
+export function getDaysInMonth(yearMonth) {
+  const [year, month] = yearMonth.split('-').map(Number)
+  // 创建下个月 1 号，然后减去 1 天得到本月最后一天
+  const lastDay = new Date(year, month, 0)
+  return lastDay.getDate()
+}
+
+/**
  * 月份导航
  * @param {string} yearMonth - 当前年月 YYYY-MM
  * @param {number} delta - 偏移月数（-1 上月，1 下月）

@@ -1,7 +1,7 @@
 // src/store/config.ts - 配置 Store (管理 AI API 配置等)
 
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { AiConfig, ApiTestResult } from '../types/config'
 import { DEFAULT_APP_CONFIG } from '../types/config'
 import { getLanguage, setLanguage as i18nSetLanguage } from '../i18n'
@@ -12,7 +12,38 @@ export const useConfigStore = defineStore('config', () => {
   const currency = ref<string>(DEFAULT_APP_CONFIG.currency)
   const weekStart = ref<'monday' | 'sunday'>(DEFAULT_APP_CONFIG.weekStart)
   const language = ref<string>(getLanguage())
-  const theme = ref<'dark' | 'light' | 'auto'>('dark')
+  const theme = ref<'dark' | 'light'>('dark')
+  const customBgColor = ref<string>('#0E0E10')
+  const useCustomBg = ref<boolean>(false)
+  
+  // ========== 主题应用函数 ==========
+  const applyTheme = (themeMode: 'dark' | 'light') => {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement
+      root.setAttribute('data-theme', themeMode)
+      root.style.removeProperty('background-color')
+    }
+  }
+  
+  const applyCustomBg = (color: string) => {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement
+      root.style.setProperty('background-color', color, 'important')
+    }
+  }
+  
+  const applyCurrentTheme = () => {
+    if (useCustomBg.value && customBgColor.value) {
+      applyCustomBg(customBgColor.value)
+    } else {
+      applyTheme(theme.value)
+    }
+  }
+  
+  // ========== 监听主题变化并自动应用 ==========
+  watch([theme, useCustomBg, customBgColor], () => {
+    applyCurrentTheme()
+  }, { deep: true })
   
   // ========== Getters ==========
   const isAiEnabled = computed(() => aiConfig.value.isEnabled && !!aiConfig.value.apiKey)
@@ -72,66 +103,51 @@ export const useConfigStore = defineStore('config', () => {
     i18nSetLanguage(lang)
   }
   
-  const setTheme = (newTheme: 'dark' | 'light' | 'auto') => {
+  const setTheme = (newTheme: 'dark' | 'light') => {
     theme.value = newTheme
+    useCustomBg.value = false
     applyTheme(newTheme)
   }
   
-  const applyTheme = (themeMode: 'dark' | 'light' | 'auto') => {
-    // 获取系统主题偏好
-    const getSystemTheme = (): 'dark' | 'light' => {
-      try {
-        // H5 环境
-        if (typeof window !== 'undefined' && window.matchMedia) {
-          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        }
-        // uni-app 环境
-        if (typeof uni !== 'undefined' && uni.getSystemInfoSync) {
-          const info = uni.getSystemInfoSync()
-          return info.theme === 'dark' ? 'dark' : 'light'
-        }
-      } catch (e) {
-        console.warn('无法获取系统主题', e)
-      }
-      return 'dark' // 默认深色
-    }
-    
-    // 确定最终主题
-    const effectiveTheme = themeMode === 'auto' ? getSystemTheme() : themeMode
-    
-    // 设置 CSS 变量
-    if (typeof document !== 'undefined') {
-      const root = document.documentElement
-      if (effectiveTheme === 'dark') {
-        root.setAttribute('data-theme', 'dark')
-      } else {
-        root.setAttribute('data-theme', 'light')
-      }
-    }
-    
-    // 监听系统主题变化（仅在 auto 模式下）
-    if (themeMode === 'auto' && typeof window !== 'undefined' && window.matchMedia) {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      const handler = (e: MediaQueryListEvent) => {
-        const newTheme = e.matches ? 'dark' : 'light'
-        document.documentElement.setAttribute('data-theme', newTheme)
-      }
-      mediaQuery.addEventListener('change', handler)
+  const setCustomBgColor = (color: string) => {
+    customBgColor.value = color
+    if (useCustomBg.value) {
+      applyCustomBg(color)
     }
   }
   
+  const enableCustomBg = () => {
+    useCustomBg.value = true
+    applyCustomBg(customBgColor.value)
+  }
+  
+  const disableCustomBg = () => {
+    useCustomBg.value = false
+    applyTheme(theme.value)
+  }
+  
   return {
-    aiConfig, currency, weekStart, language, theme,
+    aiConfig, currency, weekStart, language, theme, customBgColor, useCustomBg,
     isAiEnabled, aiApiUrl, aiApiKey, aiModel, aiSystemPrompt,
-    updateAiConfig, testAiConnection, resetConfig, setLanguage, setTheme, applyTheme,
+    updateAiConfig, testAiConnection, resetConfig, setLanguage, setTheme,
+    setCustomBgColor, enableCustomBg, disableCustomBg, applyTheme, applyCustomBg,
   }
 }, {
   persist: {
     key: 'ledger-config',
     storage: {
-      getItem: (key: string) => uni.getStorageSync(key),
-      setItem: (key: string, value: string) => uni.setStorageSync(key, value),
+      getItem: (key: string) => {
+        if (typeof uni !== 'undefined') {
+          return uni.getStorageSync(key)
+        }
+        return null
+      },
+      setItem: (key: string, value: string) => {
+        if (typeof uni !== 'undefined') {
+          uni.setStorageSync(key, value)
+        }
+      },
     },
-    pick: ['aiConfig', 'currency', 'weekStart', 'language', 'theme'],
+    pick: ['aiConfig', 'currency', 'weekStart', 'language', 'theme', 'customBgColor', 'useCustomBg'],
   },
 })

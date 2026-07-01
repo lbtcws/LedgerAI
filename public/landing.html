@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <title>LedgerAI - AI 智能记账</title>
+    <meta name="description" content="LedgerAI - 极简单的 AI 智能记账应用，本地优先，隐私安全" />
+    <meta name="theme-color" content="#007AFF" />
+    <link rel="icon" href="/LedgerAI/favicon.ico" />
+    <style>
+      :root {
+        --primary-color: #007AFF;
+        --primary-gradient: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        --bg-color: #F5F5F7;
+        --card-bg: #FFFFFF;
+        --text-primary: #1D1D1F;
+        --text-secondary: #86868B;
+        --border-color: #E5E5E5;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-color: #000000;
+          --card-bg: #1C1C1E;
+          --text-primary: #F5F5F7;
+          --text-secondary: #98989D;
+          --border-color: #2C2C2E;
+          --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+          --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+          --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* Header */
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        header {
+          background: rgba(28, 28, 30, 0.8);
+        }
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 60px;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 32px;
+      }
+
+      .nav-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--primary-color);
+      }
+
+      .cta-button {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      /* Hero Section */
+      .hero {
+        padding: 160px 0 100px;
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-size: 56px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
+      }
+
+      .hero h1 span {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero p {
+        font-size: 20px;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto 40px;
+        line-height: 1.7;
+      }
+
+      .hero-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .secondary-button {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 10px 24px;
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .secondary-button:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+      }
+
+      /* Features Section */
+      .features {
+        padding: 100px 0;
+        background: var(--card-bg);
+      }
+
+      .section-title {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .section-title h2 {
+        font-size: 40px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+      }
+
+      .section-title p {
+        font-size: 18px;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 32px;
+      }
+
+      .feature-card {
+        background: var(--bg-color);
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-gradient);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+
+      .feature-card h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+
+      .feature-card p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      /* Preview Section */
+      .preview {
+        padding: 100px 0;
+      }
+
+      .preview-content {
+        background: var(--card-bg);
+        border-radius: var(--radius-xl);
+        padding: 40px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+      }
+
+      .preview-mockup {
+        background: var(--bg-color);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: var(--text-secondary);
+      }
+
+      /* CTA Section */
+      .cta-section {
+        padding: 100px 0;
+        text-align: center;
+      }
+
+      .cta-card {
+        background: var(--primary-gradient);
+        padding: 60px 40px;
+        border-radius: var(--radius-xl);
+        color: white;
+      }
+
+      .cta-card h2 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+
+      .cta-card p {
+        font-size: 18px;
+        opacity: 0.9;
+        margin-bottom: 32px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .cta-card .cta-button {
+        background: white;
+        color: var(--primary-color);
+      }
+
+      /* Footer */
+      footer {
+        padding: 40px 0;
+        border-top: 1px solid var(--border-color);
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+
+      footer a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        color: var(--primary-color);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 36px;
+        }
+
+        .hero p {
+          font-size: 16px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .section-title h2 {
+          font-size: 28px;
+        }
+
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .cta-card h2 {
+          font-size: 28px;
+        }
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate {
+        animation: fadeInUp 0.6s ease-out forwards;
+      }
+
+      .delay-1 { animation-delay: 0.1s; }
+      .delay-2 { animation-delay: 0.2s; }
+      .delay-3 { animation-delay: 0.3s; }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">LedgerAI</div>
+          <nav class="nav-links">
+            <a href="#features">功能</a>
+            <a href="#preview">预览</a>
+            <a href="https://github.com/yourusername/LedgerAI" target="_blank">GitHub</a>
+          </nav>
+          <a href="/LedgerAI/#/" class="cta-button">立即体验</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1 class="animate">
+          AI 智能记账<br>
+          <span>简单到极致</span>
+        </h1>
+        <p class="animate delay-1">
+          LedgerAI 是一款本地优先的 AI 智能记账应用。<br>
+          无需复杂设置，开箱即用，让记账变得像聊天一样简单。
+        </p>
+        <div class="hero-buttons animate delay-2">
+          <a href="/LedgerAI/#/" class="cta-button">开始使用</a>
+          <a href="#features" class="secondary-button">了解更多</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-title">
+          <h2>核心功能</h2>
+          <p>专为 simplicity 设计，为你提供最纯粹的记账体验</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>AI 智能分析</h3>
+            <p>内置 AI 助手，帮你分析消费习惯、提供理财建议，让每一笔支出都有意义。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>本地优先</h3>
+            <p>所有数据存储在本地，支持完全离线使用。你的财务数据，只有你能访问。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎨</div>
+            <h3>极简设计</h3>
+            <p>Apple 风格极简 UI，流畅动画，深色模式支持，带来愉悦的使用体验。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>快速记账</h3>
+            <p>3 秒内完成一笔记录，智能分类，语音输入，让记账不再繁琐。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>智能报表</h3>
+            <p>自动生成消费趋势、分类统计、月度对比，一目了然掌握财务状况。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔌</div>
+            <h3>BYOK 模式</h3>
+            <p>Bring Your Own Key，支持配置自己的 AI API，灵活可控，无订阅费用。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Preview Section -->
+    <section id="preview" class="preview">
+      <div class="container">
+        <div class="section-title">
+          <h2>应用预览</h2>
+          <p>简洁直观的界面，专注核心功能</p>
+        </div>
+        <div class="preview-content">
+          <div class="preview-mockup">
+            <p>📱 应用界面预览<br><br>访问 <a href="/LedgerAI/#/" style="color: var(--primary-color);">/LedgerAI/#/</a> 体验完整功能</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-card">
+          <h2>开始你的智能记账之旅</h2>
+          <p>开源免费，本地优先，隐私安全。立即体验 LedgerAI。</p>
+          <a href="/LedgerAI/#/" class="cta-button">立即体验</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <p>
+          <a href="https://github.com/yourusername/LedgerAI" target="_blank">GitHub</a> · 
+          <a href="https://github.com/yourusername/LedgerAI/blob/main/README.md" target="_blank">文档</a> · 
+          <a href="https://github.com/yourusername/LedgerAI/issues" target="_blank">反馈</a>
+        </p>
+        <p style="margin-top: 12px;">
+          © 2025 LedgerAI. Built with ❤️ using UniApp + Vue 3
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+
+      // Intersection Observer for animations
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate');
+          }
+        });
+      }, {
+        threshold: 0.1
+      });
+
+      document.querySelectorAll('.feature-card').forEach(card => {
+        observer.observe(card);
+      });
+    </script>
+  </body>
+</html>
