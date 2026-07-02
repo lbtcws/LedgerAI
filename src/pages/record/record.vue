@@ -217,7 +217,8 @@ onMounted(() => {
 /* 提交按钮 */
 .submit-section {
   width: 100%;
-  margin-top: auto;
+  margin-top: 48rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .submit-btn {
